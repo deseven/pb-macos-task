@@ -1,4 +1,4 @@
-﻿; pb-macos-task rev.2
+﻿; pb-macos-task rev.3
 ; written by deseven
 ;
 ; https://github.com/deseven/pb-macos-task
@@ -11,7 +11,6 @@ DeclareModule task
     List args.s()
     wait_program.b
     read_output.b
-    is_thread.b
     finish_event.i
     pid.i
     exit_code.l
@@ -26,6 +25,9 @@ EndDeclareModule
 
 Module task
   
+  Threaded is_thread = #True
+  is_thread = #False
+  
   Procedure run(*task.task)
     Protected i
     Protected task
@@ -37,7 +39,7 @@ Module task
     
     If FileSize(*task\path) > 0
       
-      If *task\is_thread
+      If is_thread
         Protected Pool = CocoaMessage(0,0,"NSAutoreleasePool new")
       EndIf
       

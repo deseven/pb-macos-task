@@ -58,7 +58,6 @@ With task4
   \wait_program = #True
   \read_output = #True
   \finish_event = #PB_Event_FirstCustomValue
-  \is_thread = #True ; very important!
 EndWith
 Define taskThread = CreateThread(task::@run(),@task4)
 If IsThread(taskThread)
