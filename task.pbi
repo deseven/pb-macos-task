@@ -1,4 +1,4 @@
-﻿; pb-macos-task rev.1
+﻿; pb-macos-task rev.2
 ; written by deseven
 ;
 ; https://github.com/deseven/pb-macos-task
@@ -10,6 +10,7 @@ DeclareModule task
     workdir.s
     List args.s()
     wait_program.b
+    read_output.b
     is_thread.b
     finish_event.i
     pid.i
@@ -73,7 +74,7 @@ Module task
         stringData = CocoaMessage(0,string,"dataUsingEncoding:",#NSUTF8StringEncoding)
       EndIf
       
-      If *task\wait_program
+      If *task\read_output
         readPipe = CocoaMessage(0,0,"NSPipe pipe")
         readHandle = CocoaMessage(0,readPipe,"fileHandleForReading")
         errorPipe = CocoaMessage(0,0,"NSPipe pipe")
@@ -91,13 +92,11 @@ Module task
         CocoaMessage(0,writeHandle,"closeFile")
       EndIf
       
-      If *task\wait_program
+      If *task\read_output
         outputData = CocoaMessage(0,readHandle,"readDataToEndOfFile")
         CocoaMessage(0,readHandle,"closeFile")
         errorData = CocoaMessage(0,errorHandle,"readDataToEndOfFile")
         CocoaMessage(0,errorHandle,"closeFile")
-        CocoaMessage(0,task,"waitUntilExit")
-        *task\exit_code = CocoaMessage(0,task,"terminationStatus")
         If outputData
           stdoutNative = CocoaMessage(0,CocoaMessage(0,0,"NSString alloc"),"initWithData:",outputData,"encoding:",#NSUTF8StringEncoding)
           *task\stdout = PeekS(CocoaMessage(0,stdoutNative,"UTF8String"),-1,#PB_UTF8)
@@ -106,6 +105,16 @@ Module task
           stderrNative = CocoaMessage(0,CocoaMessage(0,0,"NSString alloc"),"initWithData:",errorData,"encoding:",#NSUTF8StringEncoding)
           *task\stderr = PeekS(CocoaMessage(0,stderrNative,"UTF8String"),-1,#PB_UTF8)
         EndIf
+      EndIf
+      
+      If *task\wait_program
+        While CocoaMessage(0,task,"isRunning")
+          Delay(5)  
+        Wend
+      EndIf
+      
+      If Not CocoaMessage(0,task,"isRunning")
+        *task\exit_code = CocoaMessage(0,task,"terminationStatus")
       EndIf
       
       CocoaMessage(0,task,"release")

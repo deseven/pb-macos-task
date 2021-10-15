@@ -6,6 +6,7 @@ Define task1.task::task
 Define task2.task::task
 Define task3.task::task
 Define task4.task::task
+Define task5.task::task
 
 Debug "running task..."
 task1\path = "/bin/echo"
@@ -36,10 +37,8 @@ With task3
   \path = "/bin/cat"
   AddElement(\args()) : \args() = "/etc/hosts"
   AddElement(\args()) : \args() = "/non/existent/file"
-  \wait_program = #True
+  \read_output = #True
   If task::run(@task3)
-    Debug "pid: " + Str(\pid)
-    Debug "exit code: " + Str(\exit_code)
     Debug "stdout: " + \stdout
     Debug "stderr: " + \stderr
   Else
@@ -57,6 +56,7 @@ With task4
   AddElement(\args()) : \args() = "3"
   AddElement(\args()) : \args() = "127.0.0.1"
   \wait_program = #True
+  \read_output = #True
   \finish_event = #PB_Event_FirstCustomValue
   \is_thread = #True ; very important!
 EndWith
@@ -71,6 +71,20 @@ If IsThread(taskThread)
     Debug "stdout: " + \stdout
     Debug "stderr: " + \stderr
   EndWith
+Else
+  Debug "task failed"
+EndIf
+
+Debug "----------"
+
+Debug "running a task that will fail to run..."
+With task5
+  \path = "/no/such/file"
+  \wait_program = #True
+EndWith
+If task::run(@task5)
+  Debug "pid: " + Str(task5\pid)
+  Debug "exit code: " + Str(task5\exit_code)
 Else
   Debug "task failed"
 EndIf
